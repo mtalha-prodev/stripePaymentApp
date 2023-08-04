@@ -41,7 +41,7 @@ const Card = () => {
       const res = await paymentIntent(data);
       console.log(res);
       if (res?.data?.paymentIntent) {
-        const cnfpay = confirmPayment(res?.data?.paymentIntent, {
+        const cnfpay = await confirmPayment(res?.data?.paymentIntent, {
           paymentMethodType: 'Card',
         });
       }
