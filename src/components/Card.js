@@ -1,6 +1,11 @@
 import {View, Text, SafeAreaView, TouchableOpacity} from 'react-native';
 import React, {useState} from 'react';
-import {CardField, createToken} from '@stripe/stripe-react-native';
+import {
+  CardField,
+  createToken,
+  confirmPayment,
+} from '@stripe/stripe-react-native';
+import axios from 'axios';
 const Card = () => {
   const [cardInfo, setCardInfo] = useState(null);
 
@@ -13,16 +18,47 @@ const Card = () => {
     }
   };
 
+  const paymentIntent = data => {
+    return new Promise((resolve, reject) => {
+      axios
+        .post('http://localhost:8080/payment-sheet', data)
+        .then(function (res) {
+          resolve(res);
+        })
+        .catch(function (err) {
+          reject(err);
+        });
+    });
+  };
+
   const payDone = async () => {
-    if (cardInfo) {
-      console.log('card focus info', cardInfo);
-      try {
-        const token = await createToken({...cardInfo, type: 'Card'});
-        console.log('token ', token);
-      } catch (error) {
-        console.log(error);
+    try {
+      const data = {
+        amount: 10000,
+        currency: 'eur',
+      };
+
+      const res = await paymentIntent(data);
+      console.log(res);
+      if (res?.data?.paymentIntent) {
+        const cnfpay = confirmPayment(res?.data?.paymentIntent, {
+          paymentMethodType: 'Card',
+        });
       }
+    } catch (error) {
+      console.log(error);
     }
+
+    // custumer token
+    // if (cardInfo) {
+    //   console.log('card focus info', cardInfo);
+    //   try {
+    //     const token = await createToken({...cardInfo, type: 'Card'});
+    //     console.log('token ', token);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // }
   };
 
   return (
