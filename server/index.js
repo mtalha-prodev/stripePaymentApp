@@ -9,26 +9,30 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 app.post('/payment-sheet', async (req, res) => {
-  // Use an existing Customer ID if this is a returning customer.
-  const customer = await stripe.customers.create();
-  const ephemeralKey = await stripe.ephemeralKeys.create(
-    {customer: customer.id},
-    {apiVersion: '2022-11-15'},
-  );
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1099,
-    currency: 'eur',
-    customer: customer.id,
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
+  try {
+    // Use an existing Customer ID if this is a returning customer.
+    const customer = await stripe.customers.create();
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      {customer: customer.id},
+      {apiVersion: '2022-11-15'},
+    );
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1099,
+      currency: 'eur',
+      customer: customer.id,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
 
-  res.json({
-    paymentIntent: paymentIntent.client_secret,
-    ephemeralKey: ephemeralKey.secret,
-    customer: customer.id,
-  });
+    res.json({
+      paymentIntent: paymentIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+    });
+  } catch (error) {
+    console.log(error.message);
+  }
 });
 app.get('/', (req, res) => {
   res.status(200).json('ok');
